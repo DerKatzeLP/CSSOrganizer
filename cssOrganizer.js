@@ -170,7 +170,7 @@ function runCssOrganizer(config) {
     const vueAbsolutePath = join(projectRoot, config.vueFolderPath)
 
     processVueFilesRecursively(vueAbsolutePath)
-      .then((result) => console.log("Process completed successfully", result))
+      .then(() => console.log("Process completed successfully"))
       .catch((error) => console.error("Error processing:", error))
       .finally(() => {
         console.log("END - CSSOrganizer - Vue Files")
@@ -190,7 +190,7 @@ function runCssOrganizer(config) {
     const cssAbsolutePath = join(projectRoot, config.cssFolderPath)
 
     processCssFilesRecursively(cssAbsolutePath)
-      .then((result) => console.log("Process completed successfully", result))
+      .then(() => console.log("Process completed successfully"))
       .catch((error) => console.error("Error processing:", error))
       .finally(() => {
         console.log("END - CSSOrganizer - CSS Files")
