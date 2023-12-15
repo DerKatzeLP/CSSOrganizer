@@ -1,10 +1,8 @@
-// David Fischer 2023
-
 /*
-Dieses Skript sortiert den Style Block ähnliche zu
+This script organizes the style block similar to
 https://9elements.com/css-rule-order/
-aber exakt nach den Vorgaben auf der Grouping JSON Datei
- */
+but precisely according to the specifications in the grouping JSON file
+*/
 
 import css from 'css'
 import { readFileSync } from 'fs'
@@ -15,12 +13,12 @@ const grouping = JSON.parse(readFileSync('./grouping.json'))
 
 const config = JSON.parse(readFileSync('./config.json'))
 
-// Alle CSS Eigenschaften zusammenführen
+// Merge all CSS properties
 const allProps = grouping.groups.map((group) => group.properties).flat()
 
-// Sortiert eine Rules Gruppe nach Eigenschaften
-function customSort(declar) {
-  return declar.sort(
+// Sorts a rules group based on properties
+function customSort(declarations) {
+  return declarations.sort(
     (a, b) => allProps.indexOf(a.property) - allProps.indexOf(b.property)
   )
 }
@@ -37,126 +35,123 @@ function sortStyleBlock(styleContent) {
 
 async function replaceStyleInVueSFC(filePath, vueFileName = 'xyz.vue') {
   try {
-    // Lese den aktuellen Inhalt der Vue-Datei
+    // Read the current content of the Vue file
     let htmlContent = await fsp.readFile(filePath, 'utf-8')
 
-    // Suche nach dem <style>-Tag
+    // Search for the <style> tag
     const styleStart = htmlContent.search('<style.*>')
     if (styleStart === -1) return
     const styleStartString = htmlContent.match('<style.*>')[0]
     const styleStartStringLength = styleStartString.length
     const styleEnd = htmlContent.indexOf('</style>')
 
-    // Überprüfe, ob <style> gefunden wurde
+    // Check if <style> was found
     if (styleStart !== -1 && styleEnd !== -1) {
-      // Extrahiere den Inhalt des <style>-Tags
+      // Extract the content of the <style> tag
       const styleContent = htmlContent.substring(
         styleStart + styleStartStringLength,
         styleEnd
       )
 
-      // Sortieren des StyleContent
+      // Sort the style content
       const sortedStyleContent = '\n' + sortStyleBlock(styleContent) + '\n'
 
-      // Ersetze den aktuellen Inhalt des <style>-Tags mit dem neuen Inhalt
+      // Replace the current content of the <style> tag with the new content
       htmlContent =
         htmlContent.substring(0, styleStart + styleStartStringLength) +
         sortedStyleContent +
         htmlContent.substring(styleEnd)
 
-      // Schreibe den aktualisierten Inhalt zurück in die Datei
+      // Write the updated content back to the file
       await fsp.writeFile(filePath, htmlContent, 'utf-8')
 
-      console.log('--> Datei ' + vueFileName + ' wurde bearbeitet')
+      console.log('--> File ' + vueFileName + ' has been edited')
     } else {
-      // <style> nicht gefunden
-      console.error('Der Inhalt von ' + vueFileName + ' wurde nicht gefunden.')
+      // <style> not found
+      console.error('The content of ' + vueFileName + ' was not found.')
     }
   } catch (error) {
-    console.error(
-      'Fehler beim Aktualisieren der Datei ' + vueFileName,
-      error.message
-    )
+    console.error('Error updating the file ' + vueFileName, error.message)
   }
 }
 
 async function processVueFilesRecursively(folderPath) {
   try {
-    // Lies alle Dateinamen im Ordner
+    // Read all filenames in the folder
     const fileNames = await fsp.readdir(folderPath)
 
-    // Filtere nur Dateien mit der Endung ".vue"
+    // Filter only files with the extension ".vue"
     const vueFiles = fileNames.filter(
       (fileName) => path.extname(fileName) === '.vue'
     )
 
-    // Bearbeite jede Vue-Datei im aktuellen Ordner
+    // Process each Vue file in the current folder
     for (const vueFile of vueFiles) {
       const filePath = path.join(folderPath, vueFile)
       await replaceStyleInVueSFC(filePath, vueFile)
     }
 
-    // Durchsuche auch alle Unterordner
+    // Also search through all subfolders
     for (const fileName of fileNames) {
       const filePath = path.join(folderPath, fileName)
       const stats = await fsp.stat(filePath)
 
       if (stats.isDirectory()) {
-        // Rekursiv verarbeite Unterordner
+        // Recursively process subfolders
         await processVueFilesRecursively(filePath)
       }
     }
 
-    console.log(`====> Ordner ${folderPath} wurde bearbeitet.`)
+    console.log(`====> Folder ${folderPath} has been processed.`)
     console.log(
       `- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - `
     )
   } catch (error) {
-    console.error('Fehler beim Verarbeiten der Vue-Dateien:', error.message)
+    console.error('Error processing Vue files:', error.message)
   }
 }
 
 async function processCssFilesRecursively(folderPath) {
   try {
-    // Lies alle Dateinamen im Ordner
+    // Read all filenames in the folder
     const fileNames = await fsp.readdir(folderPath)
 
-    // Filtere nur Dateien mit der Endung ".vue"
+    // Filter only files with the extension ".css"
     const cssFiles = fileNames.filter(
       (fileName) => path.extname(fileName) === '.css'
     )
 
-    // Bearbeite jede Vue-Datei im aktuellen Ordner
+    // Process each CSS file in the current folder
     for (const cssFile of cssFiles) {
       const filePath = path.join(folderPath, cssFile)
 
-      // Lesen der css-Datei
+      // Read the CSS file
       const styleContent = await fsp.readFile(filePath, 'utf-8')
 
-      // Sortieren der Style Blöcke
+      // Sort the style blocks
       const sortedStyleContent = sortStyleBlock(styleContent)
 
-      // Schreibe den aktualisierten Inhalt zurück in die Datei
+      // Write the updated content back to the file
       await fsp.writeFile(filePath, sortedStyleContent, 'utf-8')
     }
 
-    // Durchsuche auch alle Unterordner
+    // Also search through all subfolders
     for (const fileName of fileNames) {
       const filePath = path.join(folderPath, fileName)
       const stats = await fsp.stat(filePath)
 
       if (stats.isDirectory()) {
-        // Rekursiv verarbeite Unterordner
+        // Recursively process subfolders
         await processCssFilesRecursively(filePath)
       }
     }
 
-    console.log(`====> Ordner ${folderPath} wurde bearbeitet.`)
+    console.log(`====> Folder ${folderPath} has been processed.`)
     console.log(
       `- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - `
     )
   } catch (error) {
-    console.error('Fehler beim Verarbeiten der CSS-Dateien:', error.message)
+    console.error('Error processing CSS files:', error.message)
   }
 }
 
@@ -165,12 +160,12 @@ function runCssOrganizer(config) {
     console.log(
       '---------------------------------------------------------------'
     )
-    console.log('START - CSS Organizer - Vue-Files')
+    console.log('START - CSSOrganizer - Vue Files')
     processVueFilesRecursively(config.vueFolderPath)
-      .then((r) => console.log('Prozess wurde erfolgreich beendet', r))
-      .catch((e) => console.error('Fehler beim Bearbeiten:', e))
+      .then((result) => console.log('Process completed successfully', result))
+      .catch((error) => console.error('Error processing:', error))
       .finally(() => {
-        console.log('ENDE - CSS Organizer - Vue-Files')
+        console.log('END - CSSOrganizer - Vue Files')
         console.log(
           '---------------------------------------------------------------'
         )
@@ -181,12 +176,12 @@ function runCssOrganizer(config) {
     console.log(
       '---------------------------------------------------------------'
     )
-    console.log('START - CSS Organizer - CSS-Files')
+    console.log('START - CSSOrganizer - CSS Files')
     processCssFilesRecursively(config.cssFolderPath)
-      .then((r) => console.log('Prozess wurde erfolgreich beendet', r))
-      .catch((e) => console.error('Fehler beim Bearbeiten:', e))
+      .then((result) => console.log('Process completed successfully', result))
+      .catch((error) => console.error('Error processing:', error))
       .finally(() => {
-        console.log('ENDE - CSS Organizer - CSS-Files')
+        console.log('END - CSSOrganizer - CSS Files')
         console.log(
           '---------------------------------------------------------------'
         )
