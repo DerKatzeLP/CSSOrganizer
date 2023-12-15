@@ -1,6 +1,6 @@
 {
   "name": "@derkatzelp/cssorganizer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CSSOrganizer is a tool that allows you to configure the sorting of CSS style blocks in both CSS files and Vue Single File Components (SFCs).",
   "main": "cssOrganizer.js",
   "type": "module",
@@ -8,6 +8,9 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "bin": {
+    "css-organizer": "bin/run-css-organizer.js"
   },
   "bugs": {
     "url": "https://github.com/DerKatzeLP/CSSOrganizer/issues"
