@@ -25,7 +25,7 @@ npm install @derkatzelp/cssorganizer --save-dev
 ### Usage
 
 ```bash
-npm run sort
+npx css-organizer
 ```
 
 ## Configuration
