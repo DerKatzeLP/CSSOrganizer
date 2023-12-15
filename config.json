@@ -1,0 +1,6 @@
+{
+    "sortVueFiles": true,
+    "sortCssFiles": true,
+    "cssFolderPath": "./src/assets",
+    "vueFolderPath": "./src/components"
+  }
