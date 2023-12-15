@@ -1,9 +1,3 @@
-/*
-This script organizes the style block similar to
-https://9elements.com/css-rule-order/
-but precisely according to the specifications in the grouping JSON file
-*/
-
 import css from "css"
 import { readFileSync } from "fs"
 import fsp from "fs/promises"

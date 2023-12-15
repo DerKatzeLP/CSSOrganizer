@@ -120,3 +120,6 @@ This project is licensed under the [MIT License](LICENSE).
 ## Acknowledgments
 
 Give credit to any external libraries, tools, or individuals you'd like to acknowledge.
+
+## Idea and inspiration
+This package is inspired by the [css-rule-order](https://9elements.com/css-rule-order/)
