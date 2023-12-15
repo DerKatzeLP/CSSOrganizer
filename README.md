@@ -27,6 +27,7 @@ npm install css-organizer --save-dev
 ```bash
 npm run sort
 ```
+
 ## Configuration
 
 ### Sorting
@@ -37,13 +38,12 @@ CSSOrganizer will sort all properties by this given order.
 
 ### Options
 
-| Key             | Values  | Default           | Description                                               |
-| --------------- | ------- | ----------------- | --------------------------------------------------------- |
-| `sortVueFiles`  | Boolean | `true`            | Enables or disables sorting of Vue SFC Files              |
-| `sortCssFiles`  | Boolean | `true`            | Enables or disables sorting of CSS Files                  |
-| `vueFolderPath` | String  | `./src/components`| Specifies the path to Vue SFC Files (subfolders included) |
-| `cssFolderPath` | String  | `./src/assets`    | Specifies the path to CSS Files (subfolders included)     |
-
+| Key             | Values  | Default            | Description                                               |
+| --------------- | ------- | ------------------ | --------------------------------------------------------- |
+| `sortVueFiles`  | Boolean | `true`             | Enables or disables sorting of Vue SFC Files              |
+| `sortCssFiles`  | Boolean | `true`             | Enables or disables sorting of CSS Files                  |
+| `vueFolderPath` | String  | `./src/components` | Specifies the path to Vue SFC Files (subfolders included) |
+| `cssFolderPath` | String  | `./src/assets`     | Specifies the path to CSS Files (subfolders included)     |
 
 ## Examples
 
@@ -51,27 +51,27 @@ CSSOrganizer will sort all properties by this given order.
 
 ```css
 .class1 {
-    display: block;
-    z-index: 1;
-    position: fixed;
-    border-radius: 6px;
-    height: 200px;
-    font-size: 14px;
-    top: 1rem;
-    width: 450px;
-    border: 1px solid black;
+  display: block;
+  z-index: 1;
+  position: fixed;
+  border-radius: 6px;
+  height: 200px;
+  font-size: 14px;
+  top: 1rem;
+  width: 450px;
+  border: 1px solid black;
 }
 
 .class2 {
-    border: 2px solid red;
-    position: relative;
-    top: 2rem;
-    display: block;
-    height: 120px;
-    font-size: 12px;
-    width: 540px;
-    border-radius: 6px;
-    z-index: 1;
+  border: 2px solid red;
+  position: relative;
+  top: 2rem;
+  display: block;
+  height: 120px;
+  font-size: 12px;
+  width: 540px;
+  border-radius: 6px;
+  z-index: 1;
 }
 ```
 
@@ -79,27 +79,27 @@ CSSOrganizer will sort all properties by this given order.
 
 ```css
 .class1 {
-    position: fixed;
-    z-index: 1;
-    top: 1rem;
-    display: block;
-    border: 1px solid black;
-    border-radius: 6px;
-    width: 450px;
-    height: 200px;
-    font-size: 14px;
+  position: fixed;
+  z-index: 1;
+  top: 1rem;
+  display: block;
+  border: 1px solid black;
+  border-radius: 6px;
+  width: 450px;
+  height: 200px;
+  font-size: 14px;
 }
 
 .class2 {
-    position: relative;
-    z-index: 1;
-    top: 2rem;
-    display: block;
-    border: 2px solid red;
-    border-radius: 6px;
-    width: 540px;
-    height: 120px;
-    font-size: 12px;
+  position: relative;
+  z-index: 1;
+  top: 2rem;
+  display: block;
+  border: 2px solid red;
+  border-radius: 6px;
+  width: 540px;
+  height: 120px;
+  font-size: 12px;
 }
 ```
 
@@ -108,7 +108,6 @@ CSSOrganizer will sort all properties by this given order.
 CSSOrganizer relies on the following external library:
 
 - [css](https://www.npmjs.com/package/css)
-
 
 ## Contributing
 
