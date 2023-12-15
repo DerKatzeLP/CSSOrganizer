@@ -19,7 +19,7 @@ Follow these steps to get started with CSSOrganizer in your project.
 ### Installation
 
 ```bash
-npm install css-organizer --save-dev
+npm install @derkatzelp/cssorganizer --save-dev
 ```
 
 ### Usage
