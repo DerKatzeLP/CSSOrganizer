@@ -11,6 +11,7 @@ CSSOrganizer is a tool that allows you to configure the sorting of CSS style blo
 
 - **NO Support for SCSS, SASS, LESS Files:** CSSOrganizer is not able to sort `.scss` or `.sass` nor `.less` Files.
 - **Grouping comments:** CSSOrganizer is not yet able to add grouping comments to your css or vue files
+- **Global install:** There is a known issue with path regarding global installation
 
 ## Getting Started
 
@@ -122,4 +123,5 @@ This project is licensed under the [MIT License](LICENSE).
 Give credit to any external libraries, tools, or individuals you'd like to acknowledge.
 
 ## Idea and inspiration
+
 This package is inspired by the [css-rule-order](https://9elements.com/css-rule-order/)

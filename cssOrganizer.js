@@ -1,20 +1,18 @@
-import css from "css"
-import { readFileSync } from "fs"
-import fsp from "fs/promises"
-import path, { join } from "path"
+import css from 'css'
+import { readFileSync } from 'fs'
+import fsp from 'fs/promises'
+import path, { join } from 'path'
 
-const grouping = JSON.parse(readFileSync("./grouping.json"))
+const grouping = JSON.parse(readFileSync('./grouping.json'))
 
-const config = JSON.parse(readFileSync("./config.json"))
+const config = JSON.parse(readFileSync('./config.json'))
 
 // Merge all CSS properties
 const allProps = grouping.groups.map((group) => group.properties).flat()
 
 // Sorts a rules group based on properties
 function customSort(declarations) {
-  return declarations.sort(
-    (a, b) => allProps.indexOf(a.property) - allProps.indexOf(b.property)
-  )
+  return declarations.sort((a, b) => allProps.indexOf(a.property) - allProps.indexOf(b.property))
 }
 
 function sortStyleBlock(styleContent) {
@@ -27,28 +25,25 @@ function sortStyleBlock(styleContent) {
   return css.stringify(parsed)
 }
 
-async function replaceStyleInVueSFC(filePath, vueFileName = "xyz.vue") {
+async function replaceStyleInVueSFC(filePath, vueFileName = 'xyz.vue') {
   try {
     // Read the current content of the Vue file
-    let htmlContent = await fsp.readFile(filePath, "utf-8")
+    let htmlContent = await fsp.readFile(filePath, 'utf-8')
 
     // Search for the <style> tag
-    const styleStart = htmlContent.search("<style.*>")
+    const styleStart = htmlContent.search('<style.*>')
     if (styleStart === -1) return
-    const styleStartString = htmlContent.match("<style.*>")[0]
+    const styleStartString = htmlContent.match('<style.*>')[0]
     const styleStartStringLength = styleStartString.length
-    const styleEnd = htmlContent.indexOf("</style>")
+    const styleEnd = htmlContent.indexOf('</style>')
 
     // Check if <style> was found
     if (styleStart !== -1 && styleEnd !== -1) {
       // Extract the content of the <style> tag
-      const styleContent = htmlContent.substring(
-        styleStart + styleStartStringLength,
-        styleEnd
-      )
+      const styleContent = htmlContent.substring(styleStart + styleStartStringLength, styleEnd)
 
       // Sort the style content
-      const sortedStyleContent = "\n" + sortStyleBlock(styleContent) + "\n"
+      const sortedStyleContent = '\n' + sortStyleBlock(styleContent) + '\n'
 
       // Replace the current content of the <style> tag with the new content
       htmlContent =
@@ -57,15 +52,15 @@ async function replaceStyleInVueSFC(filePath, vueFileName = "xyz.vue") {
         htmlContent.substring(styleEnd)
 
       // Write the updated content back to the file
-      await fsp.writeFile(filePath, htmlContent, "utf-8")
+      await fsp.writeFile(filePath, htmlContent, 'utf-8')
 
-      console.log("--> File " + vueFileName + " has been edited")
+      console.log('--> File \x1b[33m' + vueFileName + '\x1b[0m has been edited')
     } else {
       // <style> not found
-      console.error("The content of " + vueFileName + " was not found.")
+      console.error('\x1b[31mThe content of ' + vueFileName + ' was not found.\x1b[0m')
     }
   } catch (error) {
-    console.error("Error updating the file " + vueFileName, error.message)
+    console.error('Error updating the file ' + vueFileName, error.message)
   }
 }
 
@@ -75,9 +70,7 @@ async function processVueFilesRecursively(folderPath) {
     const fileNames = await fsp.readdir(folderPath)
 
     // Filter only files with the extension ".vue"
-    const vueFiles = fileNames.filter(
-      (fileName) => path.extname(fileName) === ".vue"
-    )
+    const vueFiles = fileNames.filter((fileName) => path.extname(fileName) === '.vue')
 
     // Process each Vue file in the current folder
     for (const vueFile of vueFiles) {
@@ -96,12 +89,10 @@ async function processVueFilesRecursively(folderPath) {
       }
     }
 
-    console.log(`====> Folder ${folderPath} has been processed.`)
-    console.log(
-      `- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - `
-    )
+    console.log(`====> Folder \x1b[33m${folderPath}\x1b[0m has been processed.`)
+    console.log(`- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - `)
   } catch (error) {
-    console.error("Error processing Vue files:", error.message)
+    console.error('\x1b[31mError processing Vue files:\x1b[0m', error.message)
   }
 }
 
@@ -111,22 +102,22 @@ async function processCssFilesRecursively(folderPath) {
     const fileNames = await fsp.readdir(folderPath)
 
     // Filter only files with the extension ".css"
-    const cssFiles = fileNames.filter(
-      (fileName) => path.extname(fileName) === ".css"
-    )
+    const cssFiles = fileNames.filter((fileName) => path.extname(fileName) === '.css')
 
     // Process each CSS file in the current folder
     for (const cssFile of cssFiles) {
       const filePath = path.join(folderPath, cssFile)
 
       // Read the CSS file
-      const styleContent = await fsp.readFile(filePath, "utf-8")
+      const styleContent = await fsp.readFile(filePath, 'utf-8')
 
       // Sort the style blocks
       const sortedStyleContent = sortStyleBlock(styleContent)
 
       // Write the updated content back to the file
-      await fsp.writeFile(filePath, sortedStyleContent, "utf-8")
+      await fsp.writeFile(filePath, sortedStyleContent, 'utf-8')
+
+      console.log('--> File \x1b[33m' + cssFile + '\x1b[0m has been edited')
     }
 
     // Also search through all subfolders
@@ -140,58 +131,61 @@ async function processCssFilesRecursively(folderPath) {
       }
     }
 
-    console.log(`====> Folder ${folderPath} has been processed.`)
-    console.log(
-      `- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - `
-    )
+    console.log(`====> Folder \x1b[33m${folderPath}\x1b[0m has been processed.`)
+    console.log(`- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - `)
   } catch (error) {
-    console.error("Error processing CSS files:", error.message)
+    console.error('\x1b[31mError processing CSS files:\x1b[0m', error.message)
   }
+}
+
+function organizeVuePart(config, projectRoot) {
+  console.log('---------------------------------------------------------------')
+  console.log('CSSOrganizer - START - Vue Files')
+
+  // Construct the absolute path
+  const vueAbsolutePath = join(projectRoot, config.vueFolderPath)
+
+  processVueFilesRecursively(vueAbsolutePath)
+    .then(() => console.log('\x1b[32mVue Process completed successfully\x1b[0m'))
+    .catch((error) => console.error('\x1b[31mError processing Vue:\x1b[0m', error))
+    .finally(() => {
+      console.log('CSSOrganizer - END - Vue Files')
+      console.log('---------------------------------------------------------------')
+      if (config.sortCssFiles) {
+        organizeCssPart(config, projectRoot)
+      }
+    })
+}
+
+function organizeCssPart(config, projectRoot) {
+  console.log('---------------------------------------------------------------')
+  console.log('CSSOrganizer - START - CSS Files')
+
+  // Construct the absolute path
+  const cssAbsolutePath = join(projectRoot, config.cssFolderPath)
+
+  processCssFilesRecursively(cssAbsolutePath)
+    .then(() => console.log('\x1b[32mCSS Process completed successfully\x1b[0m'))
+    .catch((error) => console.error('\x1b[31mError processing CSS:\x1b[0m', error))
+    .finally(() => {
+      console.log('CSSOrganizer - END - CSS Files')
+      console.log('---------------------------------------------------------------')
+    })
 }
 
 function runCssOrganizer(config) {
   // Navigate to the root directory of the project
-  const projectRoot = process.cwd().split("node_modules")[0].slice(0, -1)
-  console.log("Path to project root", projectRoot)
-
-  if (config.sortVueFiles) {
-    console.log(
-      "---------------------------------------------------------------"
-    )
-    console.log("START - CSSOrganizer - Vue Files")
-
-    // Construct the absolute path
-    const vueAbsolutePath = join(projectRoot, config.vueFolderPath)
-
-    processVueFilesRecursively(vueAbsolutePath)
-      .then(() => console.log("Process completed successfully"))
-      .catch((error) => console.error("Error processing:", error))
-      .finally(() => {
-        console.log("END - CSSOrganizer - Vue Files")
-        console.log(
-          "---------------------------------------------------------------"
-        )
-      })
+  const projectRoot = process.cwd().split('node_modules')[0]
+  if (projectRoot.endsWith('/')) {
+    projectRoot = projectRoot.slice(0, -1)
   }
 
-  if (config.sortCssFiles) {
-    console.log(
-      "---------------------------------------------------------------"
-    )
-    console.log("START - CSSOrganizer - CSS Files")
+  console.log('\x1b[33mPath to project root\x1b[0m', projectRoot)
 
-    // Construct the absolute path
-    const cssAbsolutePath = join(projectRoot, config.cssFolderPath)
-
-    processCssFilesRecursively(cssAbsolutePath)
-      .then(() => console.log("Process completed successfully"))
-      .catch((error) => console.error("Error processing:", error))
-      .finally(() => {
-        console.log("END - CSSOrganizer - CSS Files")
-        console.log(
-          "---------------------------------------------------------------"
-        )
-      })
+  if (config.sortVueFiles) {
+    organizeVuePart(config, projectRoot)
+  } else if (config.sortCssFiles) {
+    organizeCssPart(config, projectRoot)
   }
 }
 
