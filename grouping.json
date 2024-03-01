@@ -82,6 +82,7 @@
         "transition-delay",
         "transition-duration",
         "transition-property",
+        "transition-timing-function",
         "filter",
         "animation",
         "animation-delay",
