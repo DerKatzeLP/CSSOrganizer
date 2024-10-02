@@ -39,12 +39,14 @@ CSSOrganizer will sort all properties by this given order.
 
 ### Options
 
-| Key             | Values  | Default            | Description                                               |
-| --------------- | ------- | ------------------ | --------------------------------------------------------- |
-| `sortVueFiles`  | Boolean | `true`             | Enables or disables sorting of Vue SFC Files              |
-| `sortCssFiles`  | Boolean | `true`             | Enables or disables sorting of CSS Files                  |
-| `vueFolderPath` | String  | `./src/components` | Specifies the path to Vue SFC Files (subfolders included) |
-| `cssFolderPath` | String  | `./src/assets`     | Specifies the path to CSS Files (subfolders included)     |
+| Key              | Values  | Default            | Description                                               |
+| ---------------- | ------- | ------------------ | --------------------------------------------------------- |
+| `cssFolderPath`  | String  | `./src/assets`     | Specifies the path to CSS Files (subfolders included)     |
+| `showLogFiles`   | Boolean | `true`             | Enables or disables log report of touched Files           |
+| `showLogFolders` | Boolean | `true`             | Enables or disables log report of touched Folders         |
+| `sortCssFiles`   | Boolean | `true`             | Enables or disables sorting of CSS Files                  |
+| `sortVueFiles`   | Boolean | `true`             | Enables or disables sorting of Vue SFC Files              |
+| `vueFolderPath`  | String  | `./src/components` | Specifies the path to Vue SFC Files (subfolders included) |
 
 ## Examples
 
