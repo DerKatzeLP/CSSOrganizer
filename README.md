@@ -110,7 +110,8 @@ CSSOrganizer will sort all properties by this given order.
 
 CSSOrganizer relies on the following external library:
 
-- [css](https://www.npmjs.com/package/css)
+- [adobe/css-tools](https://github.com/adobe/css-tools)
+- ~~[css](https://www.npmjs.com/package/css)~~ (before v1.2.0)
 
 ## Contributing
 
