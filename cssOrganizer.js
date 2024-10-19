@@ -216,7 +216,7 @@ function runCssOrganizer(config, projectRoot) {
 }
 
 // Navigate to the root directory of the project
-const projectRoot = process.cwd().split("node_modules")[0]
+let projectRoot = process.cwd().split("node_modules")[0]
 if (projectRoot.endsWith("/")) {
   projectRoot = projectRoot.slice(0, -1)
 }
