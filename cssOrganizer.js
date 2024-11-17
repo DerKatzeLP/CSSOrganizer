@@ -1,4 +1,3 @@
-import { log } from "console"
 import css from "@adobe/css-tools"
 import { readFileSync } from "fs"
 import fsp from "fs/promises"
@@ -224,7 +223,7 @@ if (projectRoot.endsWith("/")) {
 // Get grouping settings
 let grouping = null
 try {
-  grouping = JSON.parse(readFileSync(projectRoot + "grouping.cssorg.json"))
+  grouping = JSON.parse(readFileSync(projectRoot + "/grouping.cssorg.json"))
 } catch {
   try {
     grouping = JSON.parse(readFileSync("./grouping.json"))
@@ -249,7 +248,7 @@ try {
 // Get config
 let config = null
 try {
-  config = JSON.parse(readFileSync(projectRoot + "config.cssorg.json"))
+  config = JSON.parse(readFileSync(projectRoot + "/config.cssorg.json"))
 } catch {
   try {
     config = JSON.parse(readFileSync("./config.json"))
