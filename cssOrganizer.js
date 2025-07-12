@@ -1,4 +1,4 @@
-import css from "@adobe/css-tools"
+import css from "./parseAndStringify.js"
 import { readFileSync } from "fs"
 import fsp from "fs/promises"
 import path, { join } from "path"

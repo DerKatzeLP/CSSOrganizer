@@ -6,6 +6,7 @@ CSSOrganizer is a tool that allows you to configure the sorting of CSS style blo
 
 - **Configurable Sorting:** Customize the sorting of CSS style blocks to fit your specific needs.
 - **Support for CSS Files and Vue SFCs:** Use CSSOrganizer with traditional CSS files and Vue Single File Components.
+- **Support Tailwind Css @apply** v2.0.0 now has support for @apply, used by tailwind css.
 
 ## Not supported yet
 
@@ -54,27 +55,29 @@ CSSOrganizer will sort all properties by this given order.
 
 ```css
 .class1 {
-  display: block;
-  z-index: 1;
   position: fixed;
-  border-radius: 6px;
-  height: 200px;
-  font-size: 14px;
+  z-index: 1;
   top: 1rem;
-  width: 450px;
+  display: block;
   border: 1px solid black;
+  @apply border-1 border-black;
+  height: 200px;
+  border-radius: 6px;
+  width: 450px;
+  font-size: 14px;
 }
 
 .class2 {
-  border: 2px solid red;
   position: relative;
+  z-index: 1;
   top: 2rem;
   display: block;
+  border: 2px solid red;
+  border-radius: 6px;
+  width: 540px;
   height: 120px;
   font-size: 12px;
-  width: 540px;
-  border-radius: 6px;
-  z-index: 1;
+  @apply border-2 border-red-500 rounded-lg;
 }
 ```
 
@@ -82,6 +85,7 @@ CSSOrganizer will sort all properties by this given order.
 
 ```css
 .class1 {
+@apply border-1 border-black;
   position: fixed;
   z-index: 1;
   top: 1rem;
@@ -94,6 +98,7 @@ CSSOrganizer will sort all properties by this given order.
 }
 
 .class2 {
+@apply border-2 border-red-500 rounded-lg;
   position: relative;
   z-index: 1;
   top: 2rem;
@@ -109,8 +114,9 @@ CSSOrganizer will sort all properties by this given order.
 ## Dependencies
 
 CSSOrganizer relies on the following external library:
+> No dependencies used
 
-- [adobe/css-tools](https://github.com/adobe/css-tools)
+- ~~[adobe/css-tools](https://github.com/adobe/css-tools)~~ (before v2.0.0)
 - ~~[css](https://www.npmjs.com/package/css)~~ (before v1.2.0)
 
 ## Contributing
