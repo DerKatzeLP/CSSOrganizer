@@ -10,11 +10,33 @@ function exportModule(e, n, v, s) {
     configurable: true,
   })
 }
-var cssParseErrorExports = {}
 
-defineInteropFlag(cssParseErrorExports)
+function trimString(str) {
+  return str ? str.trim() : ""
+}
 
-exportModule(cssParseErrorExports, "default", () => CssParseError)
+function addParentNode(obj, parent) {
+  const isNode = obj && typeof obj.type === "string"
+  const childParent = isNode ? obj : parent
+  for (const k in obj) {
+    const value = obj[k]
+    if (Array.isArray(value))
+      value.forEach((v) => {
+        addParentNode(v, childParent)
+      })
+    else if (value && typeof value === "object")
+      addParentNode(value, childParent)
+  }
+  if (isNode)
+    Object.defineProperty(obj, "parent", {
+      configurable: true,
+      writable: true,
+      enumerable: false,
+      value: parent || null,
+    })
+  return obj
+}
+
 class CssParseError extends Error {
   constructor(filename, msg, lineno, column, css) {
     super(filename + ":" + lineno + ":" + column + ": " + msg)
@@ -26,14 +48,7 @@ class CssParseError extends Error {
   }
 }
 
-var positionExports = {}
-
-defineInteropFlag(positionExports)
-
-exportModule(positionExports, "default", () => PositionClass)
-/**
- * Store position information for a node
- */ class PositionClass {
+class PositionClass {
   constructor(start, end, source) {
     this.start = start
     this.end = end
@@ -41,9 +56,6 @@ exportModule(positionExports, "default", () => PositionClass)
   }
 }
 
-var cssTypesExports = {}
-
-exportModule(cssTypesExports, "CssTypes", () => CssTypesVar)
 var CssTypesVar = /*#__PURE__*/ (function (CssTypes) {
   CssTypes["stylesheet"] = "stylesheet"
   CssTypes["rule"] = "rule"
@@ -67,28 +79,28 @@ var CssTypesVar = /*#__PURE__*/ (function (CssTypes) {
   return CssTypes
 })({})
 
-// http://www.w3.org/TR/CSS21/grammar.html
-// https://github.com/visionmedia/css-parse/pull/49#issuecomment-30088027
-// New rule => https://www.w3.org/TR/CSS22/syndata.html#comments
-// [^] is equivalent to [.\n\r]
 const commentRegexConst = /\/\*[^]*?(?:\*\/|$)/g
+
+/**
+ * Parses CSS text into an AST (Abstract Syntax Tree)
+ * @param {string} css - The CSS text to parse
+ * @param {object} options - Parser options
+ * @returns {object} The CSS AST
+ */
 const parseCssConstFn = (css, options) => {
   options = options || {}
-  /**
-   * Positional.
-   */ let lineno = 1
+  let lineno = 1
   let column = 1
-  /**
-   * Update lineno and column based on `str`.
-   */ function updatePosition(str) {
+
+  // Track current position in source
+  function updatePosition(str) {
     const lines = str.match(/\n/g)
     if (lines) lineno += lines.length
     const i = str.lastIndexOf("\n")
     column = ~i ? str.length - i : column + str.length
   }
-  /**
-   * Mark position and patch `node.position`.
-   */ function position() {
+  // Create position marker for AST nodes
+  function position() {
     const start = {
       line: lineno,
       column: column,
@@ -106,9 +118,8 @@ const parseCssConstFn = (css, options) => {
       return node
     }
   }
-  /**
-   * Error `msg`.
-   */ const errorsList = []
+  // Error handling
+  const errorsList = []
   function error(msg) {
     const err = new (0, CssParseError)(
       options?.source || "",
@@ -120,47 +131,15 @@ const parseCssConstFn = (css, options) => {
     if (options?.silent) errorsList.push(err)
     else throw err
   }
-  /**
-   * Parse stylesheet.
-   */ function stylesheet() {
-    const rulesList = rules()
-    const result = {
-      type: (0, CssTypesVar).stylesheet,
-      stylesheet: {
-        source: options?.source,
-        rules: rulesList,
-        parsingErrors: errorsList,
-      },
-    }
-    return result
-  }
-  /**
-   * Opening brace.
-   */ function open() {
+
+  // Basic CSS parsing utilities
+  function open() {
     return match(/^{\s*/)
   }
-  /**
-   * Closing brace.
-   */ function close() {
+  function close() {
     return match(/^}/)
   }
-  /**
-   * Parse ruleset.
-   */ function rules() {
-    let node
-    const rules = []
-    whitespace()
-    comments(rules)
-    while (css.length && css.charAt(0) !== "}" && (node = atrule() || rule()))
-      if (node) {
-        rules.push(node)
-        comments(rules)
-      }
-    return rules
-  }
-  /**
-   * Match `re` and return captures.
-   */ function match(re) {
+  function match(re) {
     const m = re.exec(css)
     if (!m) return
     const str = m[0]
@@ -168,22 +147,19 @@ const parseCssConstFn = (css, options) => {
     css = css.slice(str.length)
     return m
   }
-  /**
-   * Parse whitespace.
-   */ function whitespace() {
+  function whitespace() {
     match(/^\s*/)
   }
-  /**
-   * Parse comments;
-   */ function comments(rules) {
+
+  // Parse CSS comments
+  function comments(rules) {
     let c
     rules = rules || []
     while ((c = comment())) if (c) rules.push(c)
     return rules
   }
-  /**
-   * Parse comment.
-   */ function comment() {
+
+  function comment() {
     const pos = position()
     if ("/" !== css.charAt(0) || "*" !== css.charAt(1)) return
     const m = match(/^\/\*[^]*?\*\//)
@@ -193,6 +169,11 @@ const parseCssConstFn = (css, options) => {
       comment: m[0].slice(2, -2),
     })
   }
+
+  /**
+   * Find the matching closing parenthesis
+   * Handles nested parentheses correctly
+   */
   function findClosingParenthese(str, start, depth) {
     let ptr = start + 1
     let found = false
@@ -212,16 +193,16 @@ const parseCssConstFn = (css, options) => {
     if (found && closeParentheses !== -1) return closeParentheses
     else return -1
   }
+
   /**
-   * Parse selector.
-   */ function selector() {
+   * Parse CSS selectors
+   * Handles complex selectors with parentheses and commas
+   */
+  function selector() {
     const m = match(/^([^{]+)/)
     if (!m) return
-    // remove comment in selector;
     let res = trimString(m[0]).replace(commentRegexConst, "")
-    // Optimisation: If there is no ',' no need to split or post-process (this is less costly)
     if (res.indexOf(",") === -1) return [res]
-    // Replace all the , in the parentheses by \u200C
     let ptr = 0
     let startParentheses = res.indexOf("(", ptr)
     while (startParentheses !== -1) {
@@ -236,43 +217,21 @@ const parseCssConstFn = (css, options) => {
         res.substring(closeParentheses)
       startParentheses = res.indexOf("(", ptr)
     }
-    // Replace all the , in ' and " by \u200C
-    res = res
-      /**
-       * replace ',' by \u200C for data selector (div[data-lang="fr,de,us"])
-       *
-       * Examples:
-       * div[data-lang="fr,\"de,us"]
-       * div[data-lang='fr,\'de,us']
-       *
-       * Regex logic:
-       *  ("|')(?:\\\1|.)*?\1 => Handle the " and '
-       *
-       * Optimization 1:
-       * No greedy capture (see docs about the difference between .* and .*?)
-       *
-       * Optimization 2:
-       * ("|')(?:\\\1|.)*?\1 this use reference to capture group, it work faster.
-       */
-      .replace(/("|')(?:\\\1|.)*?\1/g, (m) => m.replace(/,/g, "\u200C"))
-    // Split all the left , and replace all the \u200C by ,
-    return res // Split the selector by ','
-      .split(",") // Replace back \u200C by ','
-      .map((s) => {
-        return trimString(s.replace(/\u200C/g, ","))
-      })
+    res = res.replace(/("|')(?:\\\1|.)*?\1/g, (m) => m.replace(/,/g, "\u200C"))
+    return res.split(",").map((s) => {
+      return trimString(s.replace(/\u200C/g, ","))
+    })
   }
+
   /**
-   * Parse declaration.
-   */ function declaration() {
+   * Parse CSS declarations (property: value pairs)
+   */
+  function declaration() {
     const pos = position()
-    // prop
     const propMatch = match(/^(\*?[-#/*\\\w]+(\[[0-9a-z_-]+\])?)\s*/)
     if (!propMatch) return
     const propValue = trimString(propMatch[0])
-    // :
     if (!match(/^:\s*/)) return error("property missing ':'")
-    // val
     const val = match(
       /^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|[^)])*?\)|[^};])+)/
     )
@@ -281,17 +240,17 @@ const parseCssConstFn = (css, options) => {
       property: propValue.replace(commentRegexConst, ""),
       value: val ? trimString(val[0]).replace(commentRegexConst, "") : "",
     })
-    // ;
     match(/^[;\s]*/)
     return ret
   }
+
   /**
-   * Parse declarations.
-   */ function declarations() {
+   * Parse a block of CSS declarations
+   */
+  function declarations() {
     const decls = []
     if (!open()) return error("missing '{'")
     comments(decls)
-    // declarations
     let decl
     while ((decl = declaration() || atapply()))
       if (decl) {
@@ -303,9 +262,9 @@ const parseCssConstFn = (css, options) => {
     }
     return decls
   }
-  /**
-   * Parse keyframe.
-   */ function keyframe() {
+
+  // Parse various at-rules
+  function keyframe() {
     let m
     const vals = []
     const pos = position()
@@ -320,14 +279,11 @@ const parseCssConstFn = (css, options) => {
       declarations: declarations() || [],
     })
   }
-  /**
-   * Parse keyframes.
-   */ function atkeyframes() {
+  function atkeyframes() {
     const pos = position()
     const m1 = match(/^@([-\w]+)?keyframes\s*/)
     if (!m1) return
     const vendor = m1[1]
-    // identifier
     const m2 = match(/^([-\w]+)\s*/)
     if (!m2) return error("@keyframes missing name")
     const name = m2[1]
@@ -346,9 +302,7 @@ const parseCssConstFn = (css, options) => {
       keyframes: frames,
     })
   }
-  /**
-   * Parse supports.
-   */ function atsupports() {
+  function atsupports() {
     const pos = position()
     const m = match(/^@supports *([^{]+)/)
     if (!m) return
@@ -362,9 +316,7 @@ const parseCssConstFn = (css, options) => {
       rules: style,
     })
   }
-  /**
-   * Parse host.
-   */ function athost() {
+  function athost() {
     const pos = position()
     const m = match(/^@host\s*/)
     if (!m) return
@@ -376,9 +328,7 @@ const parseCssConstFn = (css, options) => {
       rules: style,
     })
   }
-  /**
-   * Parse container.
-   */ function atcontainer() {
+  function atcontainer() {
     const pos = position()
     const m = match(/^@container *([^{]+)/)
     if (!m) return
@@ -392,9 +342,7 @@ const parseCssConstFn = (css, options) => {
       rules: style,
     })
   }
-  /**
-   * Parse container.
-   */ function atlayer() {
+  function atlayer() {
     const pos = position()
     const m = match(/^@layer *([^{;@]+)/)
     if (!m) return
@@ -414,9 +362,7 @@ const parseCssConstFn = (css, options) => {
       rules: style,
     })
   }
-  /**
-   * Parse media.
-   */ function atmedia() {
+  function atmedia() {
     const pos = position()
     const m = match(/^@media *([^{]+)/)
     if (!m) return
@@ -430,9 +376,7 @@ const parseCssConstFn = (css, options) => {
       rules: style,
     })
   }
-  /**
-   * Parse custom-media.
-   */ function atcustommedia() {
+  function atcustommedia() {
     const pos = position()
     const m = match(/^@custom-media\s+(--\S+)\s*([^{;\s][^{;]*);/)
     if (!m) return
@@ -442,16 +386,13 @@ const parseCssConstFn = (css, options) => {
       media: trimString(m[2]),
     })
   }
-  /**
-   * Parse paged media.
-   */ function atpage() {
+  function atpage() {
     const pos = position()
     const m = match(/^@page */)
     if (!m) return
     const sel = selector() || []
     if (!open()) return error("@page missing '{'")
     let decls = comments()
-    // declarations
     let decl
     while ((decl = declaration())) {
       decls.push(decl)
@@ -464,9 +405,7 @@ const parseCssConstFn = (css, options) => {
       declarations: decls,
     })
   }
-  /**
-   * Parse document.
-   */ function atdocument() {
+  function atdocument() {
     const pos = position()
     const m = match(/^@([-\w]+)?document *([^{]+)/)
     if (!m) return
@@ -482,15 +421,12 @@ const parseCssConstFn = (css, options) => {
       rules: style,
     })
   }
-  /**
-   * Parse font-face.
-   */ function atfontface() {
+  function atfontface() {
     const pos = position()
     const m = match(/^@font-face\s*/)
     if (!m) return
     if (!open()) return error("@font-face missing '{'")
     let decls = comments()
-    // declarations
     let decl
     while ((decl = declaration())) {
       decls.push(decl)
@@ -502,9 +438,7 @@ const parseCssConstFn = (css, options) => {
       declarations: decls,
     })
   }
-  /**
-   * Parse starting style.
-   */ function atstartingstyle() {
+  function atstartingstyle() {
     const pos = position()
     const m = match(/^@starting-style\s*/)
     if (!m) return
@@ -516,18 +450,11 @@ const parseCssConstFn = (css, options) => {
       rules: style,
     })
   }
+
   /**
-   * Parse import
-   */ const atimport = _compileAtrule("import")
-  /**
-   * Parse charset
-   */ const atcharset = _compileAtrule("charset")
-  /**
-   * Parse namespace
-   */ const atnamespace = _compileAtrule("namespace")
-  /**
-   * Parse non-block at-rules
-   */ function _compileAtrule(name) {
+   * Generic at-rule compiler
+   */
+  function _compileAtrule(name) {
     const re = new RegExp(
       "^@" +
         name +
@@ -545,6 +472,14 @@ const parseCssConstFn = (css, options) => {
     }
   }
 
+  // Compile specific at-rules
+  const atimport = _compileAtrule("import")
+  const atcharset = _compileAtrule("charset")
+  const atnamespace = _compileAtrule("namespace")
+
+  /**
+   * Parse any at-rule
+   */
   function atrule() {
     if (css[0] !== "@") return
     return (
@@ -565,6 +500,9 @@ const parseCssConstFn = (css, options) => {
     )
   }
 
+  /**
+   * Parse @apply rule
+   */
   function atapply() {
     const pos = position()
     const m = match(/^@apply\s+([^;]+);/)
@@ -575,9 +513,11 @@ const parseCssConstFn = (css, options) => {
     })
     return t_ret
   }
+
   /**
-   * Parse rule.
-   */ function rule() {
+   * Parse a CSS rule (selectors + declarations)
+   */
+  function rule() {
     const pos = position()
     const sel = selector()
     if (!sel) return error("selector missing")
@@ -588,38 +528,47 @@ const parseCssConstFn = (css, options) => {
       declarations: declarations() || [],
     })
   }
+
+  /**
+   * Parse multiple CSS rules
+   */
+  function rules() {
+    let node
+    const rules = []
+    whitespace()
+    comments(rules)
+    while (css.length && css.charAt(0) !== "}" && (node = atrule() || rule()))
+      if (node) {
+        rules.push(node)
+        comments(rules)
+      }
+    return rules
+  }
+
+  /**
+   * Parse complete CSS stylesheet
+   */
+  function stylesheet() {
+    const rulesList = rules()
+    const result = {
+      type: (0, CssTypesVar).stylesheet,
+      stylesheet: {
+        source: options?.source,
+        rules: rulesList,
+        parsingErrors: errorsList,
+      },
+    }
+    return result
+  }
   return addParentNode(stylesheet())
 }
-/**
- * Trim `str`.
- */ function trimString(str) {
-  return str ? str.trim() : ""
-}
-/**
- * Adds non-enumerable parent node reference to each node.
- */ function addParentNode(obj, parent) {
-  const isNode = obj && typeof obj.type === "string"
-  const childParent = isNode ? obj : parent
-  for (const k in obj) {
-    const value = obj[k]
-    if (Array.isArray(value))
-      value.forEach((v) => {
-        addParentNode(v, childParent)
-      })
-    else if (value && typeof value === "object")
-      addParentNode(value, childParent)
-  }
-  if (isNode)
-    Object.defineProperty(obj, "parent", {
-      configurable: true,
-      writable: true,
-      enumerable: false,
-      value: parent || null,
-    })
-  return obj
-}
+
 var parseCssVar = parseCssConstFn
 
+/**
+ * CSS Compiler class
+ * Converts CSS AST back to CSS text
+ */
 class CssCompilerClass {
   constructor(options) {
     this.level = 0
@@ -628,14 +577,10 @@ class CssCompilerClass {
     if (typeof options?.indent === "string") this.indentation = options?.indent
     if (options?.compress) this.compress = true
   }
-  // We disable no-unused-vars for _position. We keep position for potential reintroduction of source-map
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   emit(str, _position) {
     return str
   }
-  /**
-   * Increase, decrease or return current indentation.
-   */ indent(level) {
+  indent(level) {
     this.level = this.level || 1
     if (level) {
       this.level += level
@@ -704,20 +649,14 @@ class CssCompilerClass {
       return node.stylesheet.rules.map(this.visit, this).join("")
     return this.stylesheet(node)
   }
-  /**
-   * Visit stylesheet node.
-   */ stylesheet(node) {
+  stylesheet(node) {
     return this.mapVisit(node.stylesheet.rules, "\n\n")
   }
-  /**
-   * Visit comment node.
-   */ comment(node) {
+  comment(node) {
     if (this.compress) return this.emit("", node.position)
     return this.emit(this.indent() + "/*" + node.comment + "*/", node.position)
   }
-  /**
-   * Visit container node.
-   */ container(node) {
+  container(node) {
     if (this.compress)
       return (
         this.emit("@container " + node.container, node.position) +
@@ -732,9 +671,7 @@ class CssCompilerClass {
       this.emit("\n" + this.indent(-1) + this.indent() + "}")
     )
   }
-  /**
-   * Visit container node.
-   */ layer(node) {
+  layer(node) {
     if (this.compress)
       return (
         this.emit("@layer " + node.layer, node.position) +
@@ -751,14 +688,10 @@ class CssCompilerClass {
         : ";")
     )
   }
-  /**
-   * Visit import node.
-   */ import(node) {
+  import(node) {
     return this.emit("@import " + node.import + ";", node.position)
   }
-  /**
-   * Visit media node.
-   */ media(node) {
+  media(node) {
     if (this.compress)
       return (
         this.emit("@media " + node.media, node.position) +
@@ -773,9 +706,7 @@ class CssCompilerClass {
       this.emit("\n" + this.indent(-1) + this.indent() + "}")
     )
   }
-  /**
-   * Visit document node.
-   */ document(node) {
+  document(node) {
     const doc = "@" + (node.vendor || "") + "document " + node.document
     if (this.compress)
       return (
@@ -791,19 +722,13 @@ class CssCompilerClass {
       this.emit(this.indent(-1) + "\n}")
     )
   }
-  /**
-   * Visit charset node.
-   */ charset(node) {
+  charset(node) {
     return this.emit("@charset " + node.charset + ";", node.position)
   }
-  /**
-   * Visit namespace node.
-   */ namespace(node) {
+  namespace(node) {
     return this.emit("@namespace " + node.namespace + ";", node.position)
   }
-  /**
-   * Visit container node.
-   */ startingStyle(node) {
+  startingStyle(node) {
     if (this.compress)
       return (
         this.emit("@starting-style", node.position) +
@@ -818,9 +743,7 @@ class CssCompilerClass {
       this.emit("\n" + this.indent(-1) + this.indent() + "}")
     )
   }
-  /**
-   * Visit supports node.
-   */ supports(node) {
+  supports(node) {
     if (this.compress)
       return (
         this.emit("@supports " + node.supports, node.position) +
@@ -835,9 +758,7 @@ class CssCompilerClass {
       this.emit("\n" + this.indent(-1) + this.indent() + "}")
     )
   }
-  /**
-   * Visit keyframes node.
-   */ keyframes(node) {
+  keyframes(node) {
     if (this.compress)
       return (
         this.emit(
@@ -858,9 +779,7 @@ class CssCompilerClass {
       this.emit(this.indent(-1) + "}")
     )
   }
-  /**
-   * Visit keyframe node.
-   */ keyframe(node) {
+  keyframe(node) {
     const decls = node.declarations
     if (this.compress)
       return (
@@ -877,9 +796,7 @@ class CssCompilerClass {
       this.emit(this.indent(-1) + "\n" + this.indent() + "}\n")
     )
   }
-  /**
-   * Visit page node.
-   */ page(node) {
+  page(node) {
     if (this.compress) {
       const sel = node.selectors.length ? node.selectors.join(", ") : ""
       return (
@@ -899,9 +816,7 @@ class CssCompilerClass {
       this.emit("\n}")
     )
   }
-  /**
-   * Visit font-face node.
-   */ fontFace(node) {
+  fontFace(node) {
     if (this.compress)
       return (
         this.emit("@font-face", node.position) +
@@ -918,9 +833,7 @@ class CssCompilerClass {
       this.emit("\n}")
     )
   }
-  /**
-   * Visit host node.
-   */ host(node) {
+  host(node) {
     if (this.compress)
       return (
         this.emit("@host", node.position) +
@@ -935,17 +848,13 @@ class CssCompilerClass {
       this.emit(this.indent(-1) + "\n}")
     )
   }
-  /**
-   * Visit custom-media node.
-   */ customMedia(node) {
+  customMedia(node) {
     return this.emit(
       "@custom-media " + node.name + " " + node.media + ";",
       node.position
     )
   }
-  /**
-   * Visit rule node.
-   */ rule(node) {
+  rule(node) {
     const decls = node.declarations
     if (!decls.length) return ""
     if (this.compress)
@@ -972,9 +881,7 @@ class CssCompilerClass {
       this.emit("\n" + this.indent() + "}")
     )
   }
-  /**
-   * Visit declaration node.
-   */ declaration(node) {
+  declaration(node) {
     if (this.compress)
       return (
         this.emit(node.property + ":" + node.value, node.position) +
@@ -987,6 +894,7 @@ class CssCompilerClass {
     )
   }
 }
+
 var CssCompilerVar = CssCompilerClass
 
 var compileCssVar = (node, options) => {
@@ -1001,10 +909,12 @@ var cssParserGlobal = {
   stringify: stringifyCssGlobal,
 }
 
+/**
+ * Main exports
+ */
 export {
   parseCssGlobal as parse,
   stringifyCssGlobal as stringify,
   cssParserGlobal as default,
   CssTypesVar as CssTypes,
 }
-//# sourceMappingURL=index.mjs.map
