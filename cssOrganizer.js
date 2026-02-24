@@ -215,9 +215,17 @@ function runCssOrganizer(config, projectRoot) {
 }
 
 // Navigate to the root directory of the project
-let projectRoot = process.cwd().split("node_modules")[0]
-if (projectRoot.endsWith("/")) {
-  projectRoot = projectRoot.slice(0, -1)
+// Support --root <path> or -r <path> as CLI argument
+const args = process.argv.slice(2)
+const rootArgIndex = args.findIndex((a) => a === "--root" || a === "-r")
+let projectRoot
+if (rootArgIndex !== -1 && args[rootArgIndex + 1]) {
+  projectRoot = path.resolve(args[rootArgIndex + 1])
+} else {
+  projectRoot = process.cwd().split("node_modules")[0]
+  if (projectRoot.endsWith("/")) {
+    projectRoot = projectRoot.slice(0, -1)
+  }
 }
 
 // Get grouping settings

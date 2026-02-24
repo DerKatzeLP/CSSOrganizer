@@ -13,5 +13,9 @@ const __dirname = dirname(__filename)
 const packageDirectory = join(__dirname, '..') // Adjust according to where your script is located
 process.chdir(packageDirectory)
 
+// Forward CLI arguments (e.g. --root or -r) to the sort script
+const args = process.argv.slice(2)
+const extraArgs = args.length > 0 ? ' -- ' + args.join(' ') : ''
+
 // Execute the "sort" command from "scripts"
-execSync('npm run sort', { stdio: 'inherit' })
+execSync(`npm run sort${extraArgs}`, { stdio: 'inherit' })
